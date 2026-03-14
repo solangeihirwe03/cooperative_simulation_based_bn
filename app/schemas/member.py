@@ -6,7 +6,7 @@ class MemberCreate(BaseModel):
     first_name : str
     last_name : str
     email: EmailStr
-    password: str 
+    password: str
 
 class MemberResponse(BaseModel):
     member_id: int

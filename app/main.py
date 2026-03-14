@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.routers import member_routers,admin_routes
 from fastapi.exceptions import RequestValidationError
 from app.middleware.validations import validation_exception_handler,general_exception_handler
+ 
 app = FastAPI()
  
 app.include_router(member_routers.router)
