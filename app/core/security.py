@@ -11,7 +11,7 @@ from app.models.members import Member
 from app.db.database import get_db
 import hashlib
 
-oauth2_scheme =OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme =OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
@@ -23,7 +23,7 @@ def compare_password(password,hashed_password):
 
 def generate_token(data: dict,expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
-    expire = datetime.now() + (expires_delta or timedelta(minutes=os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")))
+    expire = datetime.now() + (expires_delta or timedelta(minutes=int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))))
     to_encode.update({"exp": expire})
 
     return jwt.encode(to_encode,os.getenv("SECRET_KEY"), algorithm=os.getenv("ALGORITHM"))
@@ -39,11 +39,11 @@ def decode_token(token: str):
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
     
-def get_current_user(token: str = Depends(lambda: None), db: Session = Depends(get_db)):
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
     payload = decode_token(token)
-    user = db.query(Member).filter(Member.member_id == payload["user_id"]).first()
+    user = db.query(Member).filter(Member.member_id == payload["member_id"]).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
