@@ -31,3 +31,9 @@ class MemberUpdate(BaseModel):
     last_name: Optional[str] = None
     phone_number: Optional[str] = None
     password: Optional[str] = None
+
+class MemberStatusUpdate(BaseModel):
+    member_status: MemberStatus
+
+class MemberRoleUpdate(BaseModel):
+    role:MemberRole
