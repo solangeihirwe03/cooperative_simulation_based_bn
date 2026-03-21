@@ -10,6 +10,7 @@ load_dotenv()
 
 from app.db.database import Base
 from app.models.members import Member
+from app.models.member_contributions import MemberContribution
 
 config = context.config
 
