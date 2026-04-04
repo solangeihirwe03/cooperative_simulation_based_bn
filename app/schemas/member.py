@@ -7,17 +7,25 @@ class MemberCreate(BaseModel):
     last_name : str
     email: EmailStr
     password: str
+    cooperative_name: str
+    phone_number:str
 
+class CooperativeResponse(BaseModel):
+    cooperative_id: int
+    cooperative_name: str
+
+    class Config:
+        from_attributes = True
 class MemberResponse(BaseModel):
     member_id: int
     first_name: str
     last_name: str
     email: EmailStr
-    password: str
     phone_number: str
     member_status: MemberStatus
     role: MemberRole
     join_date: datetime
+    cooperative:CooperativeResponse
 
     class Config:
         from_attributes = True

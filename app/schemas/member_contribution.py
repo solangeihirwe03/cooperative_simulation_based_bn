@@ -4,6 +4,9 @@ from typing import Optional
 class MemberContributionCreate(BaseModel):
     contribution_amount: int
 
+class MemberContributionUpdate(BaseModel):
+    contribution_amount: int
+
 class MemberContributionResponse(BaseModel):
     member_contribution_id: int
     member_id: int
@@ -11,7 +14,7 @@ class MemberContributionResponse(BaseModel):
     contribution_date: datetime
 
     class Config:
-        orm_mode = True 
+        from_attributes = True
 
 class MemberInContribution(BaseModel):
     member_id: int
@@ -27,6 +30,15 @@ class MemberContributionsRead(BaseModel):
     contribution_amount: int
     contribution_date: datetime
     member: Optional[MemberInContribution] = None
+
+    class Config:
+        from_attributes = True
+
+class MemberTotalContribution(BaseModel):
+    member_id: int
+    first_name: str
+    last_name: str
+    total_contribution: int
 
     class Config:
         from_attributes = True

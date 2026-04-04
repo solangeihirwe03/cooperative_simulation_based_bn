@@ -8,7 +8,7 @@ from app.schemas import member,member_contribution
 from app.dependencies import require_role
 from app.core.security import get_current_user
 from app.services.member_service import update_member_status, admin_update_role
-from app.services.member_contributions_service import member_contribution_creation,admin_get_member_contributions
+from app.services.member_contributions_service import member_contribution_creation,admin_get_member_contributions,admin_update_member_contribution
 router = APIRouter(
     prefix="/admin",
     tags=["admin"]
@@ -20,9 +20,9 @@ def get_all_members(
     current_user = Depends(require_role("admin"))
 ):
     """
-    admin only endpoint to list all members.
+    admin only endpoint to list all members in the same cooperative.
     """
-    members = db.query(Member).all()
+    members = db.query(Member).filter(Member.cooperative_id == current_user.cooperative_id).all()
     return members
 
 @router.get("/members/{member_id}", response_model=member.MemberResponse)
@@ -50,7 +50,7 @@ def admin_update_member_status(
         update_member = update_member_status(db,member_id,status_update.member_status)
         return update_member
     except ValueError as e:
-        raise HTTPException(statuscode=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
 @router.put("/members/{member_id}/role", response_model=member.MemberResponse)
 def admin_update_member_role(
@@ -70,4 +70,14 @@ def create_member_contribution(
     ):
     return member_contribution_creation(db,member_id,member_contribution)
 
-
+@router.put("/members/member_contribution/{member_contribution_id}", response_model=member_contribution.MemberContributionResponse)
+def update_member_contribution(
+    member_contribution_id: int,
+    contribution_update: member_contribution.MemberContributionUpdate,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin"))
+):
+    """
+    Admin-only endpoint to update a member contribution.
+    """
+    return admin_update_member_contribution(db, member_contribution_id, contribution_update)

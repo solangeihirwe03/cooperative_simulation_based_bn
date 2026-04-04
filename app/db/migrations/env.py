@@ -9,8 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from app.db.database import Base
-from app.models.members import Member
-from app.models.member_contributions import MemberContribution
+from app.models import members,member_contributions,loans,payments,policies,cooperatives
 
 config = context.config
 
