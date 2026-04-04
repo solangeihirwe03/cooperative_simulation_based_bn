@@ -9,6 +9,6 @@ from typing import List
 
 router = APIRouter(prefix="/member_contribution", tags=["member_contribution"])
 
-@router.get("/members/tests", response_model=List[member_contribution.MemberContributionsRead] )
+@router.get("/members", response_model=List[member_contribution.MemberTotalContribution])
 def admin_get_all_contributions(db: Session = Depends(get_db), current_user = Depends(require_role("admin"))):
     return admin_get_member_contributions(db)
