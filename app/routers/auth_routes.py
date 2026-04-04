@@ -10,6 +10,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 @router.post("/register", response_model=MemberResponse)
 def create_member(member:MemberCreate, db: Session = Depends(get_db)):
     return register_user(db, member, role=MemberRole.MEMBER)
+     
 
 @router.post("/login")
 def login(data: LoginRequest, db: Session = Depends(get_db)):
