@@ -62,5 +62,6 @@ def login_user(db: Session, email: str, password: str):
 
     return {
         "message": "logged in successfully!",
-        "token": token
+        "token": token,
+        "role": user.role.value
     }

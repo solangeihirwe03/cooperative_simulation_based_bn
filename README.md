@@ -56,7 +56,7 @@ uvicorn app.main:app --reload
 
 ---
 
-## 📋 API Endpoints (25 Total)
+## 📋 API Endpoints (24 Total)
 
 ### Authentication (2)
 ```
@@ -79,10 +79,9 @@ GET    /loans/{loan_id}            Get specific loan
 PUT    /loans/{loan_id}/status     Update loan status (Admin)
 ```
 
-### Payments (6)
+### Payments (5)
 ```
 POST   /payments/loan/{loan_id}/member/{member_id}   Record payment (Admin)
-POST   /payments/loan/{loan_id}/pay                  Make payment (Member)
 GET    /payments                                      Get all payments (Admin)
 GET    /payments/me                                   Get my payments (Member)
 GET    /payments/loan/{loan_id}                       Get payments for loan
@@ -142,8 +141,8 @@ GET    /policies/{policy_id}       Get specific policy
 ### Member Restrictions
 - **One Active Loan**: Cannot get new loan while current is active
 - **View Own Data**: Members can only view their own loans/payments
-- **Pay Own Loans**: Members can only pay their own loans
-- **Admin Only**: Only admins can create loans and record admin payments
+- **Admin Records All Payments**: Only admins can record payments in the system
+- **Admin Only**: Only admins can create loans and record payments
 
 ### Loan Example
 ```
@@ -352,11 +351,11 @@ curl -X POST http://localhost:8000/loans/member/1 \
   }'
 ```
 
-### Make Payment (Member)
+### Make Payment (Admin)
 
 ```bash
-curl -X POST http://localhost:8000/payments/loan/1/pay \
-  -H "Authorization: Bearer <member_token>" \
+curl -X POST http://localhost:8000/payments/loan/1/member/1 \
+  -H "Authorization: Bearer <admin_token>" \
   -H "Content-Type: application/json" \
   -d '{"amount_paid": 2000}'
 ```
@@ -425,9 +424,10 @@ Once running, visit:
 4. Admin creates loan for member
 5. Admin marks loan as active
 6. Member views their loans
-7. Member makes payment via /payments/loan/{id}/pay
-8. System auto-completes when fully paid
-9. Member can now get new loan
+7. Member gives payment to admin
+8. Admin records payment via /payments/loan/{id}/member/{id}
+9. System auto-completes when fully paid
+10. Member can now get new loan
 ```
 
 ---

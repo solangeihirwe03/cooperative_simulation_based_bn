@@ -38,6 +38,25 @@ def update_loan_status(
     """Admin-only endpoint to update the status of a loan"""
     return loan_service.update_loan_status(db, loan_id, status_update)
 
+@router.get("/member/{member_id}", response_model=List[loan.LoanResponse])
+def get_member_loans_admin(
+    member_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin"))
+):
+    """Admin-only endpoint to view all loans for a specific member in their cooperative"""
+    from app.models.members import Member
+    
+    # Check if member exists and belongs to the same cooperative
+    member = db.query(Member).filter(Member.member_id == member_id).first()
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+    
+    if member.cooperative_id != current_user.cooperative_id:
+        raise HTTPException(status_code=403, detail="Member does not belong to your cooperative")
+    
+    return loan_service.get_member_loans(db, member_id)
+
 @router.get("/me", response_model=List[loan.LoanResponse])
 def get_my_loans(
     db: Session = Depends(get_db),

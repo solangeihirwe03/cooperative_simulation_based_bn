@@ -15,7 +15,7 @@ class CooperativeResponse(BaseModel):
     cooperative_name: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 class MemberResponse(BaseModel):
     member_id: int
     first_name: str

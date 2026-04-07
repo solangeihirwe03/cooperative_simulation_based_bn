@@ -20,9 +20,9 @@ def get_all_members(
     current_user = Depends(require_role("admin"))
 ):
     """
-    admin only endpoint to list all members.
+    admin only endpoint to list all members in the same cooperative.
     """
-    members = db.query(Member).all()
+    members = db.query(Member).filter(Member.cooperative_id == current_user.cooperative_id).all()
     return members
 
 @router.get("/members/{member_id}", response_model=member.MemberResponse)

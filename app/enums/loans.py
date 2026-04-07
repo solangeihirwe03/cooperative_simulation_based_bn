@@ -5,3 +5,4 @@ class LoanStatus(str,Enum):
     approved = "approved"
     active = "active"
     completed = "completed"
+    cancelled = "cancelled"

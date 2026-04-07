@@ -21,24 +21,6 @@ def record_payment(
     """Admin-only: Record a payment for a specific loan and member"""
     return payment_service.record_payment(db, current_user.member_id, payment_data, loan_id, member_id)
 
-@router.post("/loan/{loan_id}/pay", response_model=payment.PaymentResponse)
-def make_payment(
-    loan_id: int,
-    payment_data: payment.PaymentCreate,
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    """Member: Make a payment for their own loan"""
-    return payment_service.record_member_payment(db, current_user.member_id, payment_data, loan_id)
-
-@router.get("/me", response_model=List[payment.PaymentResponse])
-def get_my_payments(
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
-):
-    """Member: Get logged-in member payments"""
-    return payment_service.get_member_payments(db, current_user.member_id)
-
 @router.get("/{payment_id}", response_model=payment.PaymentResponse)
 def get_single_payment(
     payment_id: int,
