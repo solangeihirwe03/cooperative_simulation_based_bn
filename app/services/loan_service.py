@@ -1,6 +1,8 @@
 from sqlalchemy.orm import Session
+from app.models import member_contributions
 from app.models.loans import Loan
 from app.models.members import Member
+from app.models.policies import Policy
 from app.schemas.loan import LoanCreate, LoanUpdateStatus
 from app.enums.loans import LoanStatus
 from fastapi import HTTPException
@@ -10,7 +12,13 @@ def create_loan(db: Session, loan_data: LoanCreate, member_id: int):
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
     
-    # Check if member already has an active loan
+    policy = db.query(Policy).filter(
+        Policy.cooperative_id == member.cooperative_id
+    ).first()
+    if not policy:
+        raise HTTPException(status_code=404, detail="Policy not found")
+    
+
     existing_active_loan = db.query(Loan).filter(
         Loan.member_id == member_id,
         Loan.loan_status == LoanStatus.active
@@ -20,6 +28,23 @@ def create_loan(db: Session, loan_data: LoanCreate, member_id: int):
         raise HTTPException(
             status_code=400, 
             detail=f"Member already has an active loan. Pending loan balance: {existing_active_loan.loan_balance:.2f}"
+        )
+    
+    member_contribution = db.query(member_contributions.MemberContribution).filter(
+        member_contributions.MemberContribution.member_id == member_id
+    ).first()
+    total_contributions =member_contribution.contribution_amount
+    if total_contributions < policy.contribution_amount:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Member does not meet the minimum contribution requirement of {policy.contribution_amount:.2f}. Current contributions: {total_contributions:.2f}"
+        )
+    max_allowed_loan = total_contributions * (policy.loan_multiplier)
+
+    if loan_data.loan_amount > max_allowed_loan:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Requested loan amount exceeds the maximum allowed based on contributions. Max allowed: {max_allowed_loan:.2f}, Current contributions: {total_contributions:.2f}"
         )
     
     # Calculate interest and amounts

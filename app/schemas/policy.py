@@ -5,8 +5,13 @@ from app.enums.policies import PolicyStatus
 
 class PolicyBase(BaseModel):
     policy_name: str
+    policy_description: Optional[str] = None
+    contribution_amount: float
+    min_shares: int
+    max_shares: int
+    loan_multiplier: float
+    max_loan_amount: Optional[float] = None
     interest_rate: float
-    max_loan_amount: float
     repayment_period: int
     penalty_rate: float
 
@@ -25,8 +30,18 @@ class PolicyStatusUpdate(BaseModel):
 
 class PolicyResponse(PolicyBase):
     policy_id: int
-    created_at: datetime
-    status: PolicyStatus
+    policy_name: str
+    policy_description: Optional[str] = None
+    contribution_amount: float
+    min_shares: int
+    max_shares: int
+    loan_multiplier: float
+    max_loan_amount: Optional[float] = None
+    interest_rate: float
+    repayment_period: int
+    penalty_rate: float
+    cooperative_id: int
+    is_active: bool
 
     class Config:
-        from_attributes = True
+        from_attributes = True  

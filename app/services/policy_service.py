@@ -9,14 +9,21 @@ def enforce_single_active_policy(db: Session, active_policy_id: int):
     db.query(Policy).filter(Policy.policy_id != active_policy_id, Policy.status == PolicyStatus.active).update({"status": PolicyStatus.inactive})
     db.commit()
 
-def create_policy(db: Session, policy_data: PolicyCreate):
+def create_policy(db: Session, policy_data: PolicyCreate,cooperative_id: int):
     new_policy = Policy(
         policy_name=policy_data.policy_name,
-        interest_rate=policy_data.interest_rate,
+        policy_description=policy_data.policy_description,
+        contribution_amount=policy_data.contribution_amount,
+        min_shares=policy_data.min_shares,
+        max_shares=policy_data.max_shares,
+        loan_multiplier=policy_data.loan_multiplier,
         max_loan_amount=policy_data.max_loan_amount,
+        interest_rate=policy_data.interest_rate,
         repayment_period=policy_data.repayment_period,
-        penalty_rate=policy_data.penalty_rate
+        penalty_rate=policy_data.penalty_rate,
+        cooperative_id=cooperative_id
     )
+    print("Creating policy with data:", new_policy)
     db.add(new_policy)
     db.commit()
     db.refresh(new_policy)

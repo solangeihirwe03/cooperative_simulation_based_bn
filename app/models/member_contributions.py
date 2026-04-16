@@ -8,7 +8,9 @@ class MemberContribution(Base):
 
     member_contribution_id=Column(Integer, primary_key=True,index=True)
     member_id=Column(Integer,ForeignKey("members.member_id"), nullable=False)
+    policy_id=Column(Integer,ForeignKey("policies.policy_id"), nullable=False)
     contribution_amount=Column(Integer,nullable=False)
     contribution_date = Column(DateTime,default=datetime.now)
 
     member=relationship("Member",back_populates="member_contributions")
+    policy=relationship("Policy",back_populates="member_contributions")

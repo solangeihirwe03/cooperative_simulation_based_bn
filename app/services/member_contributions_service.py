@@ -1,5 +1,6 @@
+
 from sqlalchemy.orm import Session,joinedload
-from app.models import member_contributions,members
+from app.models import member_contributions,members,policies
 from datetime import datetime
 from fastapi import HTTPException
 from app.schemas.member_contribution import MemberContributionCreate, MemberContributionUpdate
@@ -10,9 +11,23 @@ def member_contribution_creation(db:Session,member_id: int, contribution:MemberC
     member = db.query(members.Member).filter(members.Member.member_id == member_id).first()
     if not member:
         raise HTTPException(status_code=404,detail="Member does not exist")
+    
+    policy = db.query(policies.Policy).filter(policies.Policy.cooperative_id == member.cooperative_id).first()
+    if not policy:
+        raise HTTPException(status_code=404,detail="Policy not found for this cooperative")
+    
+    amount = contribution.contribution_amount
+
+    min_allowed= policy.contribution_amount * policy.min_shares
+    max_allowed= policy.contribution_amount * policy.max_shares
+
+    if amount < min_allowed or amount > max_allowed:
+        raise HTTPException(status_code=400, detail=f"Contribution amount must be between {min_allowed} and {max_allowed} based on the policy rules.")
+    
     contribution = member_contributions.MemberContribution(
         member_id=member_id,
-        contribution_amount = contribution.contribution_amount,
+        policy_id=policy.policy_id,
+        contribution_amount = amount,
         contribution_date = datetime.now()
     )
     db.add(contribution)

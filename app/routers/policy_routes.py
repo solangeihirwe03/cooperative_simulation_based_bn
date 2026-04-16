@@ -8,14 +8,15 @@ from app.dependencies import require_role
 
 router = APIRouter(prefix="/policies", tags=["policies"])
 
-@router.post("/", response_model=policy.PolicyResponse)
+@router.post("/create_policy", response_model=policy.PolicyResponse)
 def create_policy(
     policy_data: policy.PolicyCreate,
     db: Session = Depends(get_db),
     current_user = Depends(require_role("admin"))
 ):
     """Admin-only: Create a new policy"""
-    return policy_service.create_policy(db, policy_data)
+    print("Received policy data:",current_user)
+    return policy_service.create_policy(db, policy_data,cooperative_id=current_user.cooperative_id)
 
 @router.get("/", response_model=List[policy.PolicyResponse])
 def get_all_policies(

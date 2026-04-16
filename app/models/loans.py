@@ -9,6 +9,7 @@ class Loan(Base):
 
     loan_id = Column(Integer, primary_key=True, index=True)
     member_id = Column(Integer, ForeignKey("members.member_id"), nullable=False)
+    policy_id = Column(Integer, ForeignKey("policies.policy_id"), nullable=False)
     loan_amount = Column(Float, nullable=False)
     interest_rate = Column(Float, nullable=False)
     issue_date = Column(DateTime, default=datetime.now)
@@ -21,3 +22,4 @@ class Loan(Base):
 
     member = relationship("Member", back_populates="loans")
     payments = relationship("Payment", back_populates="loan")
+    policy = relationship("Policy", back_populates="loans")
