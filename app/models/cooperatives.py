@@ -9,3 +9,4 @@ class Cooperative(Base):
     cooperative_name = Column(String(256), unique=True, nullable=False)
 
     members = relationship("Member", back_populates="cooperative")
+    policies = relationship("Policy", back_populates="cooperative")
