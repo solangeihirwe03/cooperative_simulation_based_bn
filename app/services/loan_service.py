@@ -6,6 +6,8 @@ from app.models.policies import Policy
 from app.schemas.loan import LoanCreate, LoanUpdateStatus
 from app.enums.loans import LoanStatus
 from fastapi import HTTPException
+from dateutil.relativedelta import relativedelta
+from datetime import date, datetime
 
 def create_loan(db: Session, loan_data: LoanCreate, member_id: int):
     member = db.query(Member).filter(Member.member_id == member_id).first()
@@ -67,7 +69,11 @@ def create_loan(db: Session, loan_data: LoanCreate, member_id: int):
     return new_loan
 
 def get_all_loans(db: Session):
-    return db.query(Loan).all()
+    loans= db.query(Loan).all() 
+    for loan in loans:
+        auto_update_loan_status(loan)
+    db.commit() 
+    return loans
 
 def get_loan_by_id(db: Session, loan_id: int):
     loan = db.query(Loan).filter(Loan.loan_id == loan_id).first()
@@ -83,6 +89,24 @@ def update_loan_status(db: Session, loan_id: int, status_update: LoanUpdateStatu
     loan.loan_status = status_update.loan_status
     db.commit()
     db.refresh(loan)
+    return loan
+
+def auto_update_loan_status(loan):
+    if loan.loan_status not in ["active", "late"]:
+        return
+    today = date.today()
+    issue_date = loan.issue_date
+    if isinstance(issue_date, datetime):
+        issue_date = issue_date.date()
+    due_date = issue_date + relativedelta(months=loan.repayment_period)
+    if loan.loan_status == "active" and today > due_date:
+        loan.loan_status = "late"
+
+    # 2. late → defaulted (only after 2 extra months)
+    elif loan.loan_status == "late":
+        if today > due_date + relativedelta(months=2):
+            loan.loan_status = "defaulted"
+
     return loan
 
 def get_member_loans(db: Session, member_id: int):
