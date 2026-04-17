@@ -45,3 +45,12 @@ class PolicyResponse(PolicyBase):
 
     class Config:
         from_attributes = True  
+
+class PolicySimulationCreate(BaseModel):
+    contribution_amount: float
+    min_shares: int
+    max_shares: int
+    loan_multiplier: float
+    interest_rate: float
+    repayment_period: int
+    penalty_rate: float
