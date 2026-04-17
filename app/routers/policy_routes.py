@@ -18,14 +18,14 @@ def create_policy(
     print("Received policy data:",current_user)
     return policy_service.create_policy(db, policy_data,cooperative_id=current_user.cooperative_id)
 
-@router.get("/", response_model=List[policy.PolicyResponse])
+@router.get("/get_policies", response_model=List[policy.PolicyResponse])
 def get_all_policies(
     db: Session = Depends(get_db)
 ):
     """Fetch all policies"""
     return policy_service.get_all_policies(db)
 
-@router.get("/{policy_id}", response_model=policy.PolicyResponse)
+@router.get("/policy/{policy_id}", response_model=policy.PolicyResponse)
 def get_single_policy(
     policy_id: int,
     db: Session = Depends(get_db)
@@ -33,7 +33,7 @@ def get_single_policy(
     """Fetch a specific policy by ID"""
     return policy_service.get_policy(db, policy_id)
 
-@router.patch("/{policy_id}", response_model=policy.PolicyResponse)
+@router.patch("/update_policy/{policy_id}", response_model=policy.PolicyResponse)
 def update_policy(
     policy_id: int,
     policy_update: policy.PolicyUpdate,
