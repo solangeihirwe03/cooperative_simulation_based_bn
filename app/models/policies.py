@@ -21,7 +21,7 @@ class Policy(Base):
     penalty_rate = Column(Float, nullable=False)
     is_active = Column(Boolean, default=True)
 
-    # scenarios = relationship("Scenario", back_populates="policy")
+    scenarios = relationship("Scenario", back_populates="policy")
     cooperative = relationship("Cooperative", back_populates="policies")
     member_contributions = relationship("MemberContribution", back_populates="policy")
     loans = relationship("Loan", back_populates="policy")
