@@ -19,4 +19,9 @@ def run_simulation(
     print("Data for Simulation:", data)
     
     # Get cooperative metrics and run the simulation
-    return simulation_engine.run_simulation(simulation_data, data)
+    return simulation_engine.run_simulation(
+        simulation_data,
+        data,
+        db=db,
+        cooperative_id=current_user.cooperative_id,
+    )

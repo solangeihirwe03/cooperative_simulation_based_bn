@@ -266,6 +266,12 @@ alembic revision --autogenerate -m "description"
 # Apply all pending migrations
 alembic upgrade head
 
+# Apply all pending migrations (project command)
+python migrate.py
+
+# If schema already exists and migration history is missing, align version table
+python migrate.py --stamp-head
+
 # Rollback one migration
 alembic downgrade -1
 
@@ -458,6 +464,54 @@ Once running, visit:
 - Connection pooling enabled
 - Use pagination for large result sets
 - Consider caching policies (rarely change)
+
+---
+
+## 🌱 Database Seeding
+
+Use the included seeding CLI to load deterministic development data:
+
+```bash
+# Seed all stages
+python seed.py
+
+# Run DB readiness checks only
+python seed.py --preflight-only
+
+# Reset seeded tables then reseed
+python seed.py --reset
+
+# Seed only selected stages
+python seed.py --only cooperatives,members,policies
+
+# Seed larger member pools
+python seed.py --members-per-coop 5
+```
+
+Seed stages:
+
+- cooperatives
+- members
+- policies
+- contributions
+- loans
+- payments
+- scenarios
+
+Safety guard:
+
+- The seeder refuses to run when `APP_ENV`, `ENVIRONMENT`, `FASTAPI_ENV`, or `STAGE` indicates `prod` or `production`.
+- Override intentionally with:
+
+```bash
+python seed.py --allow-production
+```
+
+Notes:
+
+- Seeding is idempotent and can be re-run safely.
+- Use `--reset` for a clean local development cycle.
+- Seeding runs DB preflight checks first (connectivity + required tables).
 
 ---
 
