@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import auth_routes, member_routers, admin_routes,member_contribution_routes, loan_routes, payment_routes, policy_routes
+from app.routers import auth_routes, member_routers, admin_routes,member_contribution_routes, loan_routes, payment_routes, policy_routes, simulation_route
 from fastapi.exceptions import RequestValidationError
 from app.middleware.validations import validation_exception_handler,general_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
@@ -18,6 +18,7 @@ app.include_router(member_contribution_routes.router)
 app.include_router(loan_routes.router)
 app.include_router(payment_routes.router)
 app.include_router(policy_routes.router)
+app.include_router(simulation_route.router)
 
 app.add_exception_handler(
     RequestValidationError,
