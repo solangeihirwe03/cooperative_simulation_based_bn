@@ -35,4 +35,4 @@ app.add_middleware(
 app.add_exception_handler(Exception, general_exception_handler)
 @app.get("/")
 def read_root():
-    return RedirectResponse(url="http://localhost:8080/dashboard")
+    return {"message" : "Welcome to the simulation based decision support for cooperative policy planning!"}
