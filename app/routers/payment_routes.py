@@ -10,6 +10,16 @@ from app.enums.member import MemberRole
 
 router = APIRouter(prefix="/payments", tags=["payments"])
 
+@router.get("/", response_model=List[payment.PaymentResponse])
+def get_all_payments(
+    loan_id: Optional[int] = Query(None, description="Filter by loan ID"),
+    date_str: Optional[str] = Query(None, description="Filter by month (YYYY-MM)"),
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin"))
+):
+    """Admin-only: Get all payments in the cooperative"""
+    return payment_service.get_all_payments(db, loan_id, date_str)
+
 @router.post("/loan/{loan_id}/member/{member_id}", response_model=payment.PaymentResponse)
 def record_payment(
     loan_id: int,
