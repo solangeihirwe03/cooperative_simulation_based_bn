@@ -8,7 +8,8 @@ from typing import List
 from app.services import payment_service
 from app.services.member_service import update_member_profile
 from app.services.member_contributions_service import get_member_contribution,get_member_total_contribution
-
+from app.schemas.penalty import PenaltyResponse
+from app.services.penalty_service import get_penalties_for_member
 
 router = APIRouter(prefix="/members", tags=["members"])
 
@@ -52,3 +53,11 @@ def get_my_payments(
 ):
     """Member: Get logged-in member payments"""
     return payment_service.get_member_payments(db, current_user.member_id)
+
+@router.get("/my_penalties", response_model=List[PenaltyResponse])
+def get_my_penalties(
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """Member: Get logged-in member penalties"""
+    return get_penalties_for_member(db, current_user.member_id)
