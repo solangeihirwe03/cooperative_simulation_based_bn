@@ -42,3 +42,11 @@ class MemberTotalContribution(BaseModel):
 
     class Config:
         from_attributes = True
+
+class MonthlyContributionReport(BaseModel):
+    year: int
+    month: int
+    total_amount: int
+
+    class Config:
+        from_attributes = True

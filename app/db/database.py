@@ -11,6 +11,7 @@ SessionLocal = sessionmaker(autocommit=False,autoflush=False,bind=engine)
 Base = declarative_base()
 
 def get_db():
+    from app.models.penalties import Penalty # Ensuring Penalty table is registered with SQLAlchemy
     db=SessionLocal()
     try:
         yield db
