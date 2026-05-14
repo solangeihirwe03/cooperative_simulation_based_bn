@@ -24,6 +24,9 @@ def member_contribution_creation(db:Session,member_id: int, contribution:MemberC
     if amount < min_allowed or amount > max_allowed:
         raise HTTPException(status_code=400, detail=f"Contribution amount must be between {min_allowed} and {max_allowed} based on the policy rules.")
     
+    if amount % policy.contribution_amount != 0:
+        raise HTTPException(status_code=400, detail=f"Contribution amount must be an exact multiple of a single share ({policy.contribution_amount}). Fractional shares are not allowed.")
+    
     contribution = member_contributions.MemberContribution(
         member_id=member_id,
         policy_id=policy.policy_id,
@@ -74,3 +77,23 @@ def admin_update_member_contribution(db: Session, member_contribution_id: int, c
     db.commit()
     db.refresh(contribution)
     return contribution
+
+def get_monthly_contributions(db: Session, cooperative_id: int):
+    """
+    Get aggregated total contributions grouped by year and month.
+    """
+    return (
+        db.query(
+            func.extract('year', member_contributions.MemberContribution.contribution_date).label('year'),
+            func.extract('month', member_contributions.MemberContribution.contribution_date).label('month'),
+            func.coalesce(func.sum(member_contributions.MemberContribution.contribution_amount), 0).label('total_amount')
+        )
+        .join(members.Member, members.Member.member_id == member_contributions.MemberContribution.member_id)
+        .filter(members.Member.cooperative_id == cooperative_id)
+        .group_by(
+            func.extract('year', member_contributions.MemberContribution.contribution_date),
+            func.extract('month', member_contributions.MemberContribution.contribution_date)
+        )
+        .order_by('year', 'month')
+        .all()
+    )

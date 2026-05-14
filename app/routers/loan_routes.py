@@ -10,17 +10,16 @@ from app.enums.member import MemberRole
 
 router = APIRouter(prefix="/loans", tags=["loans"])
 
-@router.post("/member/{member_id}", response_model=loan.LoanResponse)
+@router.post("/request_loan", response_model=loan.LoanRequestResult)
 def issue_loan(
-    member_id: int,
     loan_data: loan.LoanCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(require_role("admin"))
+    current_user = Depends(get_current_user)
 ):
-    """Admin-only endpoint to issue a new loan to a specific member"""
-    return loan_service.create_loan(db, loan_data, member_id)
+    """Endpoint for admin to issue a loan or member to request a loan"""    
+    return loan_service.create_loan(db, loan_data, current_user)
 
-@router.get("/members/", response_model=List[loan.LoanResponse])
+@router.get("/members", response_model=List[loan.LoanResponse])
 def get_all_loans(
     db: Session = Depends(get_db),
     current_user = Depends(require_role("admin"))

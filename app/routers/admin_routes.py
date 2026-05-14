@@ -9,6 +9,10 @@ from app.dependencies import require_role
 from app.core.security import get_current_user
 from app.services.member_service import update_member_status, admin_update_role
 from app.services.member_contributions_service import member_contribution_creation,admin_get_member_contributions,admin_update_member_contribution
+from app.schemas.penalty import PenaltyCreate, PenaltyResponse
+from app.services.penalty_service import create_manual_penalty, get_penalties_for_member, get_all_penalties_for_cooperative
+from typing import Dict, Any
+
 router = APIRouter(
     prefix="/admin",
     tags=["admin"]
@@ -81,3 +85,47 @@ def update_member_contribution(
     Admin-only endpoint to update a member contribution.
     """
     return admin_update_member_contribution(db, member_contribution_id, contribution_update)
+
+@router.post("/attendance/process")
+def process_attendance(
+    attendance_data: AttendanceProcess,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin"))
+):
+    """
+    Process meeting attendance: Any active member not included in attended_member_ids gets a penalty automatically.
+    """
+    return process_meeting_attendance(db, current_user.cooperative_id, attendance_data.attended_member_ids)
+
+@router.post("/members/{member_id}/create_penalty", response_model=PenaltyResponse)
+def create_penalty(
+    member_id: int,
+    penalty_data: PenaltyCreate,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin"))
+):
+    """
+    Manually issue a penalty to a member
+    """
+    return create_manual_penalty(db, member_id, penalty_data)
+
+@router.get("/members/{member_id}/penalties", response_model=List[PenaltyResponse])
+def get_member_penalties(
+    member_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin"))
+):
+    """
+    View all penalties for a specific member
+    """
+    return get_penalties_for_member(db, member_id)
+
+@router.get("/penalties", response_model=List[PenaltyResponse])
+def get_all_penalties(
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin"))
+):
+    """
+    View all penalties for all members in the admin's cooperative
+    """
+    return get_all_penalties_for_cooperative(db, current_user.cooperative_id)
