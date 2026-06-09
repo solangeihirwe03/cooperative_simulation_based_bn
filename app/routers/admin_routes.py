@@ -86,16 +86,6 @@ def update_member_contribution(
     """
     return admin_update_member_contribution(db, member_contribution_id, contribution_update)
 
-@router.post("/attendance/process")
-def process_attendance(
-    attendance_data: AttendanceProcess,
-    db: Session = Depends(get_db),
-    current_user = Depends(require_role("admin"))
-):
-    """
-    Process meeting attendance: Any active member not included in attended_member_ids gets a penalty automatically.
-    """
-    return process_meeting_attendance(db, current_user.cooperative_id, attendance_data.attended_member_ids)
 
 @router.post("/members/{member_id}/create_penalty", response_model=PenaltyResponse)
 def create_penalty(
@@ -122,10 +112,11 @@ def get_member_penalties(
 
 @router.get("/penalties", response_model=List[PenaltyResponse])
 def get_all_penalties(
+    status: str = None,
     db: Session = Depends(get_db),
     current_user = Depends(require_role("admin"))
 ):
     """
     View all penalties for all members in the admin's cooperative
     """
-    return get_all_penalties_for_cooperative(db, current_user.cooperative_id)
+    return get_all_penalties_for_cooperative(db, current_user.cooperative_id, status)

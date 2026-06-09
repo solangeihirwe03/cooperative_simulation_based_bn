@@ -8,8 +8,8 @@ from typing import List
 from app.services import payment_service
 from app.services.member_service import update_member_profile
 from app.services.member_contributions_service import get_member_contribution,get_member_total_contribution
-from app.schemas.penalty import PenaltyResponse
-from app.services.penalty_service import get_penalties_for_member
+from app.schemas.penalty import PenaltyResponse, PenaltyPay
+from app.services.penalty_service import get_penalties_for_member, pay_penalty
 
 router = APIRouter(prefix="/members", tags=["members"])
 
@@ -60,4 +60,15 @@ def get_my_penalties(
     current_user = Depends(get_current_user)
 ):
     """Member: Get logged-in member penalties"""
-    return get_penalties_for_member(db, current_user.member_id)
+    return get_penalties_for_member(db, current_user.member_id)
+
+@router.post("/penalties/{penalty_id}/pay", response_model=PenaltyResponse)
+def pay_my_penalty(
+    penalty_id: int,
+    payment_data: PenaltyPay,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    """Member: Pay a penalty partially or fully"""
+    return pay_penalty(db, penalty_id, payment_data, current_user.member_id)
+
