@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from sqlalchemy.orm import Session
 from app.models import member_contributions
 from app.models.loans import Loan
@@ -40,7 +42,7 @@ def create_loan(db: Session, loan_data: LoanCreate, current_user):
             status_code=400, 
             detail=f"Member does not meet the minimum contribution requirement of {policy.contribution_amount:.2f}. Current contributions: {total_contributions:.2f}"
         )
-    max_allowed_loan = total_contributions * (policy.loan_multiplier)
+    max_allowed_loan = total_contributions * Decimal(str(policy.loan_multiplier))
 
     if loan_data.loan_amount > max_allowed_loan:
         raise HTTPException(
@@ -62,7 +64,7 @@ def create_loan(db: Session, loan_data: LoanCreate, current_user):
         Loan.loan_status.in_([LoanStatus.approved, LoanStatus.active, LoanStatus.late, LoanStatus.defaulted])
     ).scalar()
 
-    available_funds = total_coop_contributions - total_unpaid_loans
+    available_funds = total_coop_contributions - Decimal(str(total_unpaid_loans))
 
     if loan_data.loan_amount > available_funds:
         raise HTTPException(
@@ -77,13 +79,16 @@ def create_loan(db: Session, loan_data: LoanCreate, current_user):
     
     new_loan = Loan(
         member_id=member_id,
+        policy_id=policy.policy_id,
         loan_amount=loan_data.loan_amount,
         interest_rate=loan_data.interest_rate,
         repayment_period=loan_data.repayment_period,
         interest_payable=interest_payable,
         repayment_amount=repayment_amount,
         loan_balance=loan_balance,
-        loan_status=LoanStatus.active
+        loan_status=LoanStatus.active,
+        cooperative_id=member.cooperative_id,
+        disbursed_at=datetime.now()
     )
     db.add(new_loan)
     db.commit()
@@ -108,6 +113,9 @@ def update_loan_status(db: Session, loan_id: int, status_update: LoanUpdateStatu
     if not loan:
         raise HTTPException(status_code=404, detail="Loan not found")
     
+    if status_update.loan_status == LoanStatus.active and loan.loan_status != LoanStatus.active:
+        loan.disbursed_at = datetime.now()
+        
     loan.loan_status = status_update.loan_status
     db.commit()
     db.refresh(loan)

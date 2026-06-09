@@ -10,7 +10,7 @@ from app.enums.member import MemberRole
 
 router = APIRouter(prefix="/loans", tags=["loans"])
 
-@router.post("/request_loan", response_model=loan.LoanRequestResult)
+@router.post("/request_loan", response_model=loan.LoanResponse)
 def issue_loan(
     loan_data: loan.LoanCreate,
     db: Session = Depends(get_db),
@@ -64,15 +64,41 @@ def get_my_loans(
     """Members endpoint to view their own loans"""
     return loan_service.get_member_loans(db, current_user.member_id)
 
+@router.get("/admin/{loan_id}", response_model=loan.LoanResponse)
+def get_specific_loan_admin(
+    loan_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin"))
+):
+    """Admin-only endpoint to view a specific loan within their cooperative"""
+    from app.models.members import Member
+    
+    loan_obj = loan_service.get_loan_by_id(db, loan_id)
+    
+    # Check if the member who owns the loan belongs to the admin's cooperative
+    member = db.query(Member).filter(Member.member_id == loan_obj.member_id).first()
+    if not member or member.cooperative_id != current_user.cooperative_id:
+        raise HTTPException(status_code=403, detail="Loan does not belong to a member of your cooperative")
+        
+    return loan_obj
+
 @router.get("/{loan_id}", response_model=loan.LoanResponse)
 def get_specific_loan(
     loan_id: int,
     db: Session = Depends(get_db),
     current_user = Depends(get_current_user)
 ):
-    """Endpoint for admin to view any loan, or member to view their own loan"""
+    """Endpoint for admin to view a specific loan in their cooperative, or member to view their own loan"""
     loan_obj = loan_service.get_loan_by_id(db, loan_id)
-    # Ensure standard members can only view their own loans
-    if current_user.role != MemberRole.ADMIN and loan_obj.member_id != current_user.member_id:
-        raise HTTPException(status_code=403, detail="Not authorized to view this loan")
+    
+    # Check cooperative/ownership authorization
+    if current_user.role == MemberRole.ADMIN:
+        from app.models.members import Member
+        member = db.query(Member).filter(Member.member_id == loan_obj.member_id).first()
+        if not member or member.cooperative_id != current_user.cooperative_id:
+            raise HTTPException(status_code=403, detail="Loan does not belong to a member of your cooperative")
+    else:
+        if loan_obj.member_id != current_user.member_id:
+            raise HTTPException(status_code=403, detail="Not authorized to view this loan")
+            
     return loan_obj

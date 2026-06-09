@@ -19,6 +19,8 @@ class Loan(Base):
     repayment_amount = Column(Float, nullable=False)  # loan_amount + interest_payable
     amount_paid = Column(Float, nullable=False, default=0)
     loan_balance = Column(Float, nullable=False) 
+    cooperative_id = Column(Integer, ForeignKey("cooperatives.cooperative_id"), nullable=True)
+    disbursed_at = Column(DateTime, nullable=True)
 
     member = relationship("Member", back_populates="loans")
     payments = relationship("Payment", back_populates="loan")
