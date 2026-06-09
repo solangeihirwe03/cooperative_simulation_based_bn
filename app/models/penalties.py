@@ -14,6 +14,7 @@ class Penalty(Base):
     penalty_id = Column(Integer, primary_key=True, index=True)
     member_id = Column(Integer, ForeignKey("members.member_id"), nullable=False)
     amount = Column(Float, nullable=False)
+    amount_paid = Column(Float, default=0.0, nullable=False)
     reason = Column(String(255), nullable=True)
     status = Column(SqlEnum(PenaltyStatus, native_enum=False), default=PenaltyStatus.UNPAID, nullable=False)
     date_issued = Column(DateTime, default=datetime.now)

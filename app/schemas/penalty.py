@@ -9,6 +9,7 @@ class PenaltyCreate(BaseModel):
 class PenaltyResponse(PenaltyCreate):
     penalty_id: int
     member_id: int
+    amount_paid: float
     status: str
     date_issued: datetime
 
@@ -18,3 +19,6 @@ class PenaltyResponse(PenaltyCreate):
 class AttendanceProcess(BaseModel):
     meeting_date: datetime
     attended_member_ids: List[int]
+
+class PenaltyPay(BaseModel):
+    amount: float

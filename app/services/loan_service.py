@@ -8,6 +8,8 @@ from app.enums.loans import LoanStatus
 from fastapi import HTTPException
 from dateutil.relativedelta import relativedelta
 from datetime import date, datetime
+from sqlalchemy import func
+from app.models.member_contributions import MemberContribution
 from app.services.member_contributions_service import get_member_total_contribution
 
 def create_loan(db: Session, loan_data: LoanCreate, current_user):
@@ -44,6 +46,28 @@ def create_loan(db: Session, loan_data: LoanCreate, current_user):
         raise HTTPException(
             status_code=400, 
             detail=f"Requested loan amount exceeds the maximum allowed based on contributions. Max allowed: {max_allowed_loan:.2f}, Current contributions: {total_contributions:.2f}"
+        )
+    
+    # Calculate cooperative's available funds
+    total_coop_contributions = db.query(func.coalesce(func.sum(MemberContribution.contribution_amount), 0)).join(
+        Member, MemberContribution.member_id == Member.member_id
+    ).filter(
+        Member.cooperative_id == member.cooperative_id
+    ).scalar()
+
+    total_unpaid_loans = db.query(func.coalesce(func.sum(Loan.loan_amount), 0)).join(
+        Member, Loan.member_id == Member.member_id
+    ).filter(
+        Member.cooperative_id == member.cooperative_id,
+        Loan.loan_status.in_([LoanStatus.approved, LoanStatus.active, LoanStatus.late, LoanStatus.defaulted])
+    ).scalar()
+
+    available_funds = total_coop_contributions - total_unpaid_loans
+
+    if loan_data.loan_amount > available_funds:
+        raise HTTPException(
+            status_code=400,
+            detail=f"The cooperative does not have enough funds to issue this loan. Available funds: {available_funds:.2f}"
         )
     
     # Calculate interest and amounts
