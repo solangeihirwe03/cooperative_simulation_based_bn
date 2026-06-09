@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
 from app.db.database import get_db
 from app.models.members import Member
@@ -12,6 +12,10 @@ from app.services.member_contributions_service import member_contribution_creati
 from app.schemas.penalty import PenaltyCreate, PenaltyResponse
 from app.services.penalty_service import create_manual_penalty, get_penalties_for_member, get_all_penalties_for_cooperative
 from typing import Dict, Any
+from app.schemas.income import IncomeReportResponse
+from app.services.income_service import get_cooperative_income
+from app.services.penalty_cron import run_penalty_calculation
+from datetime import date as date_type
 
 router = APIRouter(
     prefix="/admin",
@@ -120,3 +124,52 @@ def get_all_penalties(
     View all penalties for all members in the admin's cooperative
     """
     return get_all_penalties_for_cooperative(db, current_user.cooperative_id, status)
+
+@router.get("/reports/income", response_model=IncomeReportResponse)
+def get_income_report(
+    from_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
+    to_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    include_breakdown: bool = Query(False, description="Include detailed per-loan and per-penalty line items"),
+    db: Session = Depends(get_db),
+    current_user = Depends(require_role("admin"))
+):
+    """
+    Fetch cooperative income summary and optional line-item breakdown.
+    Only accessible by administrators.
+    """
+    return get_cooperative_income(
+        db=db,
+        cooperative_id=current_user.cooperative_id,
+        from_date=from_date,
+        to_date=to_date,
+        include_breakdown=include_breakdown
+    )
+
+
+@router.post("/jobs/run-penalty-check", tags=["admin"])
+def trigger_penalty_check(
+    target_date: Optional[str] = Query(None, description="Date to evaluate as YYYY-MM-DD (defaults to today)"),
+    db: Session = Depends(get_db),
+    current_user=Depends(require_role("admin"))
+):
+    """
+    Manually trigger the disbursement-based penalty evaluation job.
+    Useful for testing and audit purposes.
+    Only accessible by administrators.
+    """
+    eval_date = date_type.today()
+    if target_date:
+        try:
+            eval_date = date_type.fromisoformat(target_date)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid target_date. Use YYYY-MM-DD format.")
+
+    evaluated, applied, skipped = run_penalty_calculation(db, eval_date)
+    db.commit()
+    return {
+        "message": "Penalty evaluation completed.",
+        "target_date": str(eval_date),
+        "loans_evaluated": evaluated,
+        "penalties_applied": applied,
+        "loans_skipped": skipped
+    }

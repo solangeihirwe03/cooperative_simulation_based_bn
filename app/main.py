@@ -3,8 +3,16 @@ from app.routers import auth_routes, member_routers, admin_routes,member_contrib
 from fastapi.exceptions import RequestValidationError
 from app.middleware.validations import validation_exception_handler,general_exception_handler
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
-app = FastAPI()
+from contextlib import asynccontextmanager
+from app.core.scheduler import setup_scheduler, shutdown_scheduler
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    setup_scheduler()
+    yield
+    shutdown_scheduler()
+
+app = FastAPI(lifespan=lifespan)
  
 origins = [
     "http://localhost:8080",

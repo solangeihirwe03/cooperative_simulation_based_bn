@@ -26,6 +26,7 @@ class LoanResponse(LoanBase):
     repayment_amount: float
     amount_paid: float
     loan_balance: float
+    cooperative_id: Optional[int] = None
 
     class Config:
         from_attributes = True

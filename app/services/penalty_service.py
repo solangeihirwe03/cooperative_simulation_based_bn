@@ -8,22 +8,23 @@ from app.enums.member import MemberStatus
 from app.models.penalties import PenaltyStatus
 
 def create_manual_penalty(db: Session, member_id: int, penalty_data: PenaltyCreate):
+    # Check if member exists
+    member = db.query(Member).filter(Member.member_id == member_id).first()
+    if not member:
+        raise HTTPException(status_code=404, detail="Member not found")
+
     # Check if member already has an unpaid penalty
     unpaid_penalty = db.query(Penalty).filter(
         Penalty.member_id == member_id, 
         Penalty.status == PenaltyStatus.UNPAID
     ).first()
-    
-    if unpaid_penalty:
-        raise HTTPException(
-            status_code=400, 
-            detail="Member already has an unpaid penalty. They cannot be penalized again until it is paid."
-        )
+
 
     new_penalty = Penalty(
         member_id=member_id,
         amount=penalty_data.amount,
-        reason=penalty_data.reason
+        reason=penalty_data.reason,
+        cooperative_id=member.cooperative_id
     )
     db.add(new_penalty)
     db.commit()

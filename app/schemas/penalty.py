@@ -11,7 +11,9 @@ class PenaltyResponse(PenaltyCreate):
     member_id: int
     amount_paid: float
     status: str
-    date_issued: datetime
+    issued_at: datetime
+    date_issued: Optional[datetime] = None
+    cooperative_id: Optional[int] = None
 
     class Config:
         from_attributes = True
