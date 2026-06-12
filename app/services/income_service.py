@@ -6,6 +6,7 @@ from fastapi import HTTPException
 
 from app.models.loans import Loan
 from app.models.penalties import Penalty
+from app.models.members import Member
 from app.enums.loans import LoanStatus
 
 def get_cooperative_income(
@@ -76,3 +77,39 @@ def get_cooperative_income(
         response_data["penalties"] = None
 
     return response_data
+
+def get_financial_summary(db: Session, current_user: Member):
+    cooperative_id = current_user.cooperative_id
+
+    total_loans = (
+        db.query(func.sum(Loan.loan_amount))
+        .filter(Loan.cooperative_id == cooperative_id)
+        .scalar()
+        or 0
+    )
+
+    total_interest = (
+        db.query(func.sum(Loan.interest_payable))
+        .filter(
+            Loan.cooperative_id == cooperative_id,
+            Loan.loan_status.in_([
+                LoanStatus.active,
+                LoanStatus.completed
+            ])
+        )
+        .scalar()
+        or 0
+    )
+
+    total_penalties = (
+        db.query(func.sum(Penalty.amount))
+        .filter(Loan.cooperative_id == cooperative_id)
+        .scalar()
+        or 0
+    )
+
+    total_income = total_interest + total_penalties
+
+    return {
+        "total_income": total_income
+    }

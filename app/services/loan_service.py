@@ -95,12 +95,12 @@ def create_loan(db: Session, loan_data: LoanCreate, current_user):
     db.refresh(new_loan)
     return new_loan
 
-def get_all_loans(db: Session):
-    loans= db.query(Loan).all() 
-    for loan in loans:
-        auto_update_loan_status(loan)
-    db.commit() 
-    return loans
+def get_all_loans(db: Session, cooperative_id:int):   
+    return (
+        db.query(Loan)
+        .filter(Loan.cooperative_id == cooperative_id)
+        .all()
+    )
 
 def get_loan_by_id(db: Session, loan_id: int):
     loan = db.query(Loan).filter(Loan.loan_id == loan_id).first()
