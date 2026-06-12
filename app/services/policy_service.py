@@ -23,7 +23,6 @@ def create_policy(db: Session, policy_data: PolicyCreate,cooperative_id: int):
         penalty_rate=policy_data.penalty_rate,
         cooperative_id=cooperative_id
     )
-    print("Creating policy with data:", new_policy)
     db.add(new_policy)
     db.commit()
     db.refresh(new_policy)

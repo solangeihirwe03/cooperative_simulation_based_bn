@@ -38,7 +38,7 @@ def member_contribution_creation(db:Session,member_id: int, contribution:MemberC
     db.refresh(contribution)
     return contribution
 
-def admin_get_member_contributions(db:Session):
+def admin_get_member_contributions(db:Session, cooperative_id: int):
     """
     get all member contributions
     """
@@ -50,6 +50,7 @@ def admin_get_member_contributions(db:Session):
             func.coalesce(func.sum(member_contributions.MemberContribution.contribution_amount), 0).label("total_contribution")
         )
         .outerjoin(member_contributions.MemberContribution, members.Member.member_id == member_contributions.MemberContribution.member_id)
+        .filter(members.Member.cooperative_id == cooperative_id)
         .group_by(members.Member.member_id, members.Member.first_name, members.Member.last_name)
         .all()
     )

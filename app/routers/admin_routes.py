@@ -13,7 +13,7 @@ from app.schemas.penalty import PenaltyCreate, PenaltyResponse
 from app.services.penalty_service import create_manual_penalty, get_penalties_for_member, get_all_penalties_for_cooperative
 from typing import Dict, Any
 from app.schemas.income import IncomeReportResponse
-from app.services.income_service import get_cooperative_income
+from app.services.income_service import get_cooperative_income, get_financial_summary
 from app.services.penalty_cron import run_penalty_calculation
 from datetime import date as date_type
 
@@ -173,3 +173,10 @@ def trigger_penalty_check(
         "penalties_applied": applied,
         "loans_skipped": skipped
     }
+
+@router.get("/financial-summary")
+def financial_summary(
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
+    return get_financial_summary(db, current_user)

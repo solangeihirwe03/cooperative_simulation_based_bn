@@ -12,14 +12,6 @@ def create_manual_penalty(db: Session, member_id: int, penalty_data: PenaltyCrea
     member = db.query(Member).filter(Member.member_id == member_id).first()
     if not member:
         raise HTTPException(status_code=404, detail="Member not found")
-
-    # Check if member already has an unpaid penalty
-    unpaid_penalty = db.query(Penalty).filter(
-        Penalty.member_id == member_id, 
-        Penalty.status == PenaltyStatus.UNPAID
-    ).first()
-
-
     new_penalty = Penalty(
         member_id=member_id,
         amount=penalty_data.amount,
@@ -39,6 +31,7 @@ def get_all_penalties_for_cooperative(db: Session, cooperative_id: int, status: 
     query = db.query(Penalty).join(Member).filter(Member.cooperative_id == cooperative_id)
     if status:
         query = query.filter(Penalty.status == status)
+
     return query.all()
 
 def pay_penalty(db: Session, penalty_id: int, payment_data: PenaltyPay, member_id: int):

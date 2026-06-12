@@ -15,7 +15,6 @@ def create_policy(
     current_user = Depends(require_role("admin"))
 ):
     """Admin-only: Create a new policy"""
-    print("Received policy data:",current_user)
     return policy_service.create_policy(db, policy_data,cooperative_id=current_user.cooperative_id)
 
 @router.get("/get_policies", response_model=List[policy.PolicyResponse])

@@ -25,7 +25,7 @@ def get_all_loans(
     current_user = Depends(require_role("admin"))
 ):
     """Admin-only endpoint to view all loans"""
-    return loan_service.get_all_loans(db)
+    return loan_service.get_all_loans(db,current_user.cooperative_id)
 
 @router.put("/{loan_id}/status", response_model=loan.LoanResponse)
 def update_loan_status(

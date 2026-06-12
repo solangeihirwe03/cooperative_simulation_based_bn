@@ -16,7 +16,6 @@ def run_simulation(
     """Admin-only endpoint to run a simulation based on provided policy parameters"""
     
     data = simulation_engine.get_cooperativer_metrics(db, current_user.cooperative_id)
-    print("Data for Simulation:", data)
     
     # Get cooperative metrics and run the simulation
     return simulation_engine.run_simulation(
